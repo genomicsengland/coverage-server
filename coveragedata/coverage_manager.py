@@ -1,0 +1,55 @@
+import logging
+from time import time
+
+from pymongo import MongoClient, ASCENDING
+
+from coveragedb.settings import COVERAGE_DB_HOST, COVERAGE_DB
+
+
+class CoverageManager(object):
+    c = MongoClient(host=COVERAGE_DB_HOST)
+    coverage_db = c[COVERAGE_DB]
+    coverage_collection = coverage_db['coverage']
+
+    def add_coverage_data(self, coverage_data):
+        result = self.coverage_collection.insert_many(coverage_data)
+        logging.info('{} gene coverage metrics inserted'.format(len(result.inserted_ids)))
+
+    def remove_coverage_data(self, sample_name, gene_collection):
+        result = self.coverage_collection.delete_many({'sample': sample_name, 'gcol': gene_collection})
+        logging.info('{} gene coverage metrics for gene collection {} were removed'.format(result.deleted_count,
+                                                                                           gene_collection)
+                     )
+
+    def get_sample_info(self, sample, gene_collection, list_of_genes, last_gene, limit=100):
+        gene_search = {"$in": list_of_genes}
+        if last_gene:
+            gene_search['$gt'] = last_gene
+
+        result = self.coverage_collection.find({'sample': sample, 'gcol': gene_collection,
+                                                'name': gene_search}
+                                               ).sort('name', ASCENDING).limit(limit)
+        return result
+
+    def get_gene_info(self, sample_list, gene_collection, gene):
+        result = self.coverage_collection.find({'sample': {"$in": sample_list}, 'gcol': gene_collection, 'name': gene})
+        return result
+
+    def get_aggregated_by_gene(self, gene_list):
+        query = [
+            {'$match': {'name': {'$in': gene_list}}},
+            {'$group': {
+                '_id': '$name',
+                'avg_med': {'$avg': '$union_tr.stats.med'},
+                'avg_gte15x': {'$avg': '$union_tr.stats.%>=15x'},
+                'avg_gte50x': {'$avg': '$union_tr.stats.%>=50x'},
+                'avg_avg': {'$avg': '$union_tr.stats.avg'},
+                'avg_pct75': {'$avg': '$union_tr.stats.pct75'},
+                'avg_gte30x': {'$avg': '$union_tr.stats.%>=30x'},
+                'avg_pct25': {'$avg': '$union_tr.stats.pct25'},
+                # 'avg_lt15x': {'$avg': '$union_tr.stats.lt15x'},
+            }}
+
+        ]
+
+        return self.coverage_collection.aggregate(query)
