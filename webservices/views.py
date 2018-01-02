@@ -15,10 +15,22 @@ class SampleIngestionViewSet(mixins.CreateModelMixin,
                              mixins.DestroyModelMixin,
                              viewsets.GenericViewSet):
     """
-    A simple ViewSet for viewing SampleIngestion.
 
     retrieve:
-    Return SampleIngestion.
+    Return SampleIngestion data, use this endpoint to check the status of the ingestion process
+
+    list:
+    list SampleIngestion data.
+
+    delete:
+    Delete the Coverage data associated to a sample for a gene collection
+
+    create:
+    Trigger the ingestion of Coverage data, given a file a sample and a gene collection.
+    You will ingest coverage data for ONE sample and ONE gene collection,
+    these 2 fields, form a unique id, so you can not ingest the new data for
+    the same sample and same gene collection more than once before to delete
+    the first one.
 
     """
     queryset = SampleIngestion.objects.all()
@@ -57,8 +69,9 @@ class GeneCoverageView(viewsets.ViewSet):
     """
 
     list:
-    List of Coverage data
-        sample_name: Name of the requested sample
+    Lists Coverage metrics for one sample and a given list of genes
+
+
     """
     model = GeneCoverage
     serializer = CoverageSerializer
@@ -105,9 +118,6 @@ class GeneCoverageView(viewsets.ViewSet):
 class SampleMetricsView(viewsets.ViewSet):
     """
 
-    list:
-    List of Coverage data
-        sample_name: Name of the requested sample
     """
     sample_manager = SampleManager()
     serializer = SampleCoverageSerializer
