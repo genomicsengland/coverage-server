@@ -34,7 +34,7 @@ class SampleManager(object):
         if last_sample:
             sample_search['$gt'] = last_sample
 
-        result = self.sample_collection.find({'gcol': gene_collection, 'name': sample_search}
+        result = self.sample_collection.find({'gene_collection': gene_collection, 'name': sample_search}
                                              ).sort('name', ASCENDING).limit(limit)
         return result
 

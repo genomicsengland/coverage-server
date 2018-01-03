@@ -30,9 +30,12 @@ class SampleIngestionSerializer(serializers.ModelSerializer):
             return 'NOT STARTED'
 
 
-class CoverageSerializer(serializers.BaseSerializer):
-    gene_collection = serializers.CharField()
-    gene_list = StringListField()
+class CoverageSerializer(serializers.Serializer):
+    gene_collection = serializers.CharField(help_text='Name of the Gene Collection, '
+                                                      'you can check the available gene collection in'
+                                                      '/api/gene-collection/')
+    gene_list = StringListField(help_text='List of genes names, i.e TP53')
+    sample_name = serializers.CharField(help_text='Sample name')
 
     def to_representation(self, instance):
         return instance.to_json_dict()
@@ -43,10 +46,13 @@ class CoverageSerializer(serializers.BaseSerializer):
                                  )
 
 
+class SampleCoverageSerializer(serializers.Serializer):
+    gene_collection = serializers.CharField()
+    sample_list = StringListField()
 
-class SampleCoverageSerializer(serializers.BaseSerializer):
     def to_representation(self, instance):
-        return instance.to_json_dict()
+        instance.pop('_id')
+        return instance
 
 
 
