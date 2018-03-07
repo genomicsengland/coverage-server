@@ -1,9 +1,11 @@
 # Requirements
 
+Calypso works with Python3.5.
+
 ## Python Packages Requirements
 
 All standard python packages required are specified in
-the `requirements.txt` file
+the `requirements.txt` and in `setup.py` files.
 
 ## System requirements
 
@@ -21,6 +23,11 @@ celery worker -A coveragedb -l info
 - **MongoDB**. Follow https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
 
 # Prepare dev environment and running the app
+
+### Install calypso in your Python interpreter
+```
+pip install .
+```
 
 ### Migration
 ```
