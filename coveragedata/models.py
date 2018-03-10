@@ -1,4 +1,4 @@
-from coveragedata.constants import VALUES
+from coveragedata.constants import STATS_ORDERED_KEYS
 from coveragedata.coverage_manager import CoverageManager
 
 
@@ -12,29 +12,29 @@ class Stats(object):
         self.pct75 = kwargs.get('pct75', None)
         self.bases = kwargs.get('bases', None)
         self.med = kwargs.get('med', None)
-        self.gte30x = kwargs.get('%>=30x', None)
-        self.gte50x = kwargs.get('%>=50x', None)
-        self.gte15x = kwargs.get('%>=15x', None)
-        self.lt15x = kwargs.get('%<15x', None)
+        self.gte30x = kwargs.get('gte30x', None)
+        self.gte50x = kwargs.get('gte50x', None)
+        self.gte15x = kwargs.get('gte15x', None)
+        self.lt15x = kwargs.get('lt15x', None)
         self.pct25 = kwargs.get('pct25', None)
         self.avg = kwargs.get('avg', None)
         self.gc = kwargs.get('gc', None)
-        self.other_stats = {k: v for k, v in kwargs.items() if k not in VALUES}
+        self.other_stats = {k: v for k, v in kwargs.items() if k not in STATS_ORDERED_KEYS}
 
     @classmethod
     def from_array(cls, array):
-        return cls(**{k: v for v, k in zip(array, VALUES)})
+        return cls(**{k: v for v, k in zip(array, STATS_ORDERED_KEYS)})
 
     def to_json_dict(self):
         return {k: self.__getattribute__(k) for k in self.__slots__}
 
 
 class ExonCoverage(object):
-    __slots__ = ['padded_s', 'padded_e', 'stats', 'gaps']
+    __slots__ = ['s', 'e', 'stats', 'gaps']
 
     def __init__(self, **kwargs):
-        self.padded_s = kwargs.get('padded_s', None)
-        self.padded_e = kwargs.get('padded_e', None)
+        self.s = kwargs.get('s', None)
+        self.e = kwargs.get('e', None)
         self.stats = Stats.from_array(kwargs.get('stats', None))
         self.gaps = kwargs.get('gaps', None)
 

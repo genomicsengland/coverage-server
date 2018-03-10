@@ -19,15 +19,15 @@ INDEXES = {
         ([
              ('name', pymongo.ASCENDING),
              ('union_tr.stats.med', pymongo.ASCENDING),
-             ('union_tr.stats.%>=15x', pymongo.ASCENDING),
-             ('union_tr.stats.%>=50x', pymongo.ASCENDING),
+             ('union_tr.stats.gte15x', pymongo.ASCENDING),
+             ('union_tr.stats.gte50x', pymongo.ASCENDING),
              ('union_tr.stats.avg', pymongo.ASCENDING),
              ('union_tr.stats.pct75', pymongo.ASCENDING),
-             ('union_tr.stats.%>=30x', pymongo.ASCENDING),
+             ('union_tr.stats.gte30x', pymongo.ASCENDING),
              ('union_tr.stats.pct25', pymongo.ASCENDING),
              ('union_tr.stats.bases', pymongo.ASCENDING),
              ('union_tr.stats.sd', pymongo.ASCENDING),
-             ('union_tr.stats.%<15x', pymongo.ASCENDING),
+             ('union_tr.stats.lt15x', pymongo.ASCENDING),
          ],
          {'name': 'stats'}
         )

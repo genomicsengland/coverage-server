@@ -23,6 +23,7 @@ setup(
         'djangorestframework==3.7.7',
         'Markdown==2.6.10',
         'Pygments==2.2.0',
-        'pymongo==3.5.1'
+        'pymongo==3.5.1',
+        'mock==2.0.0'
     ]
 )
