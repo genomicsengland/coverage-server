@@ -4,7 +4,7 @@ from .models import SampleIngestion, GeneCollection
 
 
 class SampleIngestionAdmin(admin.ModelAdmin):
-    list_display = ['name', 'input_file', 'gene_collection', 'task']
+    list_display = ['name', 'input_file', 'gene_collection', 'task', 'seconds']
 
 
 class GeneCollectionAdmin(admin.ModelAdmin):

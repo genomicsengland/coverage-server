@@ -99,4 +99,21 @@ You delete the inserted data with the endpoint:
 `/api/sample-ingestion/{name_and_gene_collection}/` (method DELETE)
 where `name_and_gene_collection` will the the name of the sample
  and the name of the gene collection separated by `-`
+ 
+# Load mocked data
 
+## Generate mocked data
+First we need to generate some mocked data.
+```
+> pip install gelcoverage>=1.5.0
+> mocked_bigwig_analyser --output-folder ~/data/mocked_coverage/ --config resources/bigwig_analyser.GRCh38.config --coding-regions resources/coding_regions.GRCh38.bed --coverage-threshold 0 --number-results 10
+```
+
+The above command will generate whole exome mocked coverage results for 10 samples in assembly GRCh38. Setting the option `--coverage-threshold 0` gives data without any coverage gaps. Every sample takes around 6 minutes to complete.
+
+## Create gene collections
+Once Calypso is prepared we need to create one or more gene collections to hold our data. Follow the instructions above.
+
+## Load coverage data
+
+You can either use the admin panel or through the REST API.
