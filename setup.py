@@ -5,7 +5,7 @@ setup(
     name='calypso',
     version='1.0.0',
     packages=find_packages(),
-    scripts=[],
+    scripts=["resources/scripts/calypso_data_loader.py", "resources/scripts/calypso_drop_data.py"],
     url='',
     license='',
     author=['arueda', 'priesgo'],

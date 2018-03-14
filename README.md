@@ -106,14 +106,29 @@ where `name_and_gene_collection` will the the name of the sample
 First we need to generate some mocked data.
 ```
 > pip install gelcoverage>=1.5.0
-> mocked_bigwig_analyser --output-folder ~/data/mocked_coverage/ --config resources/bigwig_analyser.GRCh38.config --coding-regions resources/coding_regions.GRCh38.bed --coverage-threshold 0 --number-results 10
+> mocked_bigwig_analyser --output-folder ~/data/mocked_coverage/ --config resources/bigwig_analyser.GRCh38.config --coding-regions resources/coding_regions.GRCh38.bed --coverage-threshold 10 --number-results 10
 ```
 
 The above command will generate whole exome mocked coverage results for 10 samples in assembly GRCh38. Setting the option `--coverage-threshold 0` gives data without any coverage gaps. Every sample takes around 6 minutes to complete.
 
+To generate some smaller data use a gene list as follows:
+```
+>mocked_bigwig_analyser --output-folder ~/data/mocked_coverage/ --config resources/bigwig_analyser.GRCh38.config --gene-list BRCA1,CFTR --coverage-threshold 10 --number-results 10
+```
+
 ## Create gene collections
-Once Calypso is prepared we need to create one or more gene collections to hold our data. Follow the instructions above.
+Once Calypso is prepared we need to create one or more gene collections to hold our data. This needs to be done through the admin panel, follow the instructions above.
 
 ## Load coverage data
+Use the REST API or alternatively use the script `calypso_data_loader.py` as follows:
+```bash
+calypso_data_loader.py --input resources/test/data_loader_input.tsv --host 127.0.0.1:8000 --verbose
+```
 
-You can either use the admin panel or through the REST API.
+where `data_loader_input.tsv` is a file of tab-separated values having three columns: sample name, absolute path to coverage JSON file and gene collection. Bear in mind that the combination sample name and gene collection must be unique.
+
+## Delete coverage data
+To delete all data in the database use the REST API sample by sample or alternatively use the script `calypso_drop_data.py` as follows:
+```bash
+calypso_drop_data.py --host 127.0.0.1:8000 --verbose
+```
