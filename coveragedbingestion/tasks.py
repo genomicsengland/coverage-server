@@ -17,6 +17,7 @@ def ingest(sample_ingest_id):
     logging.info("Starting task with id '{}'".format(task_id))
     # saves the task in pending status
     task_result = TaskResult(task_id=task_id)
+    task_result.status = states.STARTED
     task_result.save()
     # associates the task to the sample ingestion entity
     sample_ingest.task = task_result
@@ -29,14 +30,9 @@ def ingest(sample_ingest_id):
         logging.info("Task succeeded in {} seconds!".format(seconds))
         sample_ingest.seconds = int(seconds)
         sample_ingest.save(update_fields=["seconds"])
-        # TODO: do we need this?
-        task_result.status = states.SUCCESS
-        task_result.save(update_fields=["status"])
     except Exception as ex:
         seconds = time.time() - start_time
         sample_ingest.seconds = int(seconds)
         sample_ingest.save(update_fields=["seconds"])
         logging.error("Task failed: {}".format(str(ex)))
-        # TODO: do we need this?
-        task_result.status = states.FAILURE
-        task_result.save(update_fields=["status"])
+        raise ex
