@@ -81,14 +81,20 @@ class GeneCoverage(object):
 
         cm = CoverageManager()
         result = cm.get_gene_info(sample, gene_collection, gene_name)
-        return cls(**result.next())
+        if result.count() > 0:
+            return cls(**result.next())
+        else:
+            return None
 
     @classmethod
     def list(cls, sample, gene_list, gene_collection, last_gene=None, limit=None):
         cm = CoverageManager()
         results = cm.get_sample_info(sample, gene_collection, gene_list, last_gene, limit)
-        for r in results:
-            yield cls(**r)
+        if results is not None:
+            for r in results:
+                yield cls(**r)
+        else:
+            return None
 
     def to_json_dict(self):
         return {'name': self.name,
