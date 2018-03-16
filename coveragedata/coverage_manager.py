@@ -57,3 +57,82 @@ class CoverageManager(object):
         ]
 
         return self.coverage_collection.aggregate(query)
+
+    @mongo_exception_manager
+    def get_coverage_by_sample_and_genes(self, sample, gene_list):
+        """
+
+        :param sample: the sample of interest
+        :param gene_list: the list of genes of interst. If empty all genes will be returned
+        :return: a cursor with the search results
+        """
+        query = {'sample': sample}
+        if gene_list:
+            query['name'] = {"$in": gene_list}
+        projection = {'union_tr.stats.avg': 1, 'name': 1, 'sample': 1, '_id': 0}
+        cursor = self.coverage_collection.find(
+            query,
+            projection
+        ).sort('name', ASCENDING)
+        return cursor
+
+    @mongo_exception_manager
+    def get_groups_by_samples(self, samples):
+        """
+
+        :param samples: the list of samples to query
+        :return: a list of documents where _id is the sample and group is the field gcol without repetitions
+        """
+        query = {"$match": {"sample": {"$in": samples}}}
+        projection = {"$project": {"gcol": 1, "sample": 1, "_id": 0}}
+        group = {"$group": {"_id": "$sample", "group": {"$first": "$gcol"}}}
+        results = self.coverage_collection.aggregate([query, projection, group])
+        return results
+
+    @mongo_exception_manager
+    def get_genes_by_group(self, group):
+        """
+
+        :param group: a group (ie: gcol) of interest
+        :return: a list of genes for which there is coverage data in the group
+        """
+        group_genes = self.coverage_collection.distinct("name", {"gcol": group})
+        return group_genes
+
+    @mongo_exception_manager
+    def get_genes_by_groups(self, groups):
+        """
+
+        :param groups: the list of groups (ie: gcol) of interest
+        :return: a list of genes for which there is coverage data in all groups
+        """
+        genes = []
+        for group in groups:
+            group_genes = self.get_genes_by_group(group)
+            if not genes:
+                genes = group_genes
+            else:
+                genes = list(set(genes).intersection(set(group_genes)))
+        return genes
+
+    @mongo_exception_manager
+    def get_samples_by_group(self, group):
+        """
+
+        :param group: a group (ie: gcol) of interest
+        :return: a list of samples belonging to the group
+        """
+        group_samples = self.coverage_collection.distinct("sample", {"gcol": group})
+        return group_samples
+
+    @mongo_exception_manager
+    def get_samples_by_groups(self, groups):
+        """
+
+        :param groups: a list of groups (ie: gcol) of interest
+        :return: a list of samples belonging to the groups
+        """
+        samples = []
+        for group in groups:
+            samples += self.get_samples_by_group(group)
+        return samples
