@@ -15,6 +15,10 @@ class GeneCoverageQuery(object):
         self.gene_list = gene_list
 
 
+class AggregationQuery(object):
+    def __init__(self, gene_list):
+        self.gene_list = gene_list
+
 
 class SampleIngestionSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
@@ -53,6 +57,16 @@ class SampleCoverageSerializer(serializers.Serializer):
     def to_representation(self, instance):
         instance.pop('_id')
         return instance
+
+
+class AggregationsSerializer(serializers.Serializer):
+    gene_list = StringListField(help_text='List of genes names, i.e TP53')
+
+    def to_representation(self, instance):
+        return instance.to_json_dict()
+
+    def to_internal_value(self, data):
+        return AggregationQuery(gene_list=data.get('gene_list'))
 
 
 

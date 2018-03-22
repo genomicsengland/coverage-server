@@ -15,11 +15,13 @@ import math
 
 class DifferentialCoverageAnalyser(object):
 
-    def __init__(self, groups):
+    def __init__(self, groups, pvalue_thr=0.05, fold_change_thr=1.5):
         """
         PRE: the list of groups has exactly two groups
         :param groups: the list of groups to compare
         """
+        self.pvalue_thr = pvalue_thr
+        self.fold_change_thr = fold_change_thr
         logging.basicConfig(level="INFO")
         numpy2ri.activate()  # this is required to transform numpy arrays into R data frames
         pandas2ri.activate()  # this is required to transform R data frames into pandas
@@ -34,7 +36,7 @@ class DifferentialCoverageAnalyser(object):
             len(self.genes), len(self.samples), round(time.time() - start)))
         self.dca_results = None
 
-    def run(self, pvalue_thr=0.05, fold_change_thr=2):
+    def run(self):
         """
         Runs the Fisher's exact test to calculate differential coverage using edgeR.
         :return: a pandas data frame with one row per gene having fold change, p-value and adjusted p-value
@@ -64,9 +66,9 @@ class DifferentialCoverageAnalyser(object):
         # stores the genes in the row names as a proper column in the data frame
         self.dca_results["gene"] = tags[0].rownames
         self.dca_results["classification"] = [
-            "not significant" if entry["PValue"] > pvalue_thr
-            else "over-covered" if entry["logFC"] >= fold_change_thr
-            else "under-covered" if entry["logFC"] <= -fold_change_thr
+            "not significant" if entry["FDR"] > self.pvalue_thr
+            else "over-covered" if entry["logFC"] >= self.fold_change_thr
+            else "under-covered" if entry["logFC"] <= -self.fold_change_thr
             else "irrelevant" for index, entry in self.dca_results.iterrows()]
         logging.info("Finished DCA analyis in {} seconds!".format(round(time.time() - start)))
         return self.dca_results
@@ -103,48 +105,48 @@ class DifferentialCoverageAnalyser(object):
             not_significant_data = self.dca_results[self.dca_results["classification"] == "not significant"]
             not_significant = go.Scatter(
                 x=not_significant_data["logFC"],
-                y=[-math.log(x) for x in not_significant_data["PValue"]],
+                y=[-math.log10(x) for x in not_significant_data["FDR"]],
                 mode='markers',
                 name='not significant',
                 marker=dict(
                     size='8',
-                    color='rgb(31, 119, 180)'
+                    color='rgb(192, 192, 192)'
                 ),
                 text=not_significant_data['gene']
             )
             irrelevant_data = self.dca_results[self.dca_results["classification"] == "irrelevant"]
             irrelevant = go.Scatter(
                 x=irrelevant_data["logFC"],
-                y=[-math.log(x) for x in irrelevant_data["PValue"]],
+                y=[-math.log10(x) for x in irrelevant_data["FDR"]],
                 mode='markers',
                 name='irrelevant',
                 marker=dict(
                     size='8',
-                    color='rgb(255, 127, 14)'
+                    color='rgb(192, 192, 192)'
                 ),
                 text=irrelevant_data['gene']
             )
             overcovered_data = self.dca_results[self.dca_results["classification"] == "over-covered"]
             overcovered = go.Scatter(
                 x=overcovered_data["logFC"],
-                y=[-math.log(x) for x in overcovered_data["PValue"]],
+                y=[-math.log10(x) for x in overcovered_data["FDR"]],
                 mode='markers',
                 name='up-covered',
                 marker=dict(
                     size='8',
-                    color='rgb(44, 160, 44)'
+                    color='rgb(255, 102, 102)'
                 ),
                 text=overcovered_data['gene']
             )
             undercovered_data = self.dca_results[self.dca_results["classification"] == "under-covered"]
             undercovered = go.Scatter(
                 x=undercovered_data["logFC"],
-                y=[-math.log(x) for x in undercovered_data["PValue"]],
+                y=[-math.log10(x) for x in undercovered_data["FDR"]],
                 mode='markers',
                 name='down-covered',
                 marker=dict(
                     size='8',
-                    color='rgb(214, 39, 40)'
+                    color='rgb(178, 255, 102)'
                 ),
                 text=undercovered_data['gene']
             )
@@ -152,7 +154,67 @@ class DifferentialCoverageAnalyser(object):
                 title='Calypso DCA analysis: {} vs {}'.format(self.groups[0], self.groups[1]),
                 hovermode='closest',
                 yaxis=dict(zeroline=False, title="-log(p-value)"),
-                xaxis=dict(zeroline=False, title="fold change")
+                xaxis=dict(zeroline=False, title="fold change"),
+                shapes=[
+                    {   # Unbounded line at x = 2
+                        'type': 'line',
+                        'xref': 'x',
+                        'yref': 'paper',
+                        'x0': self.fold_change_thr,
+                        'y0': 0,
+                        'x1': self.fold_change_thr,
+                        'y1': 1,
+                        'line': {
+                            'color': 'rgb(255, 102, 102)',
+                            'width': 2,
+                            'dash': 'dash'
+                        }
+                    },
+                    {  # Unbounded line at x = -2
+                        'type': 'line',
+                        'xref': 'x',
+                        'yref': 'paper',
+                        'x0': -self.fold_change_thr,
+                        'y0': 0,
+                        'x1': -self.fold_change_thr,
+                        'y1': 1,
+                        'line': {
+                            'color': 'rgb(255, 102, 102)',
+                            'width': 2,
+                            'dash': 'dash'
+                        }
+                    },
+                    {  # Unbounded line at y = -log10(0.01)
+                        'type': 'line',
+                        'xref': 'paper',
+                        'yref': 'y',
+                        'x0': 0,
+                        'y0': 2,
+                        'x1': 1,
+                        'y1': 2,
+                        'line': {
+                            'color': 'rgb(255, 102, 102)',
+                            'width': 2,
+                            'dash': 'dash'
+                        }
+                        #'text': 'p-value = 0.01'
+                    },
+                    {  # Unbounded line at y = -log10(0.001)
+                        'type': 'line',
+                        'xref': 'paper',
+                        'yref': 'y',
+                        'x0': 0,
+                        'y0': 3,
+                        'x1': 1,
+                        'y1': 3,
+                        'line': {
+                            'color': 'rgb(255, 102, 102)',
+                            'width': 2,
+                            'dash': 'dash'
+                        }
+                        #'text': 'p-value = 0.001'
+                    }
+                ]
             )
             figure = dict(data=[not_significant, irrelevant, overcovered, undercovered], layout=layout)
             plot(figure, filename=filename)
