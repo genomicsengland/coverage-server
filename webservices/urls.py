@@ -47,7 +47,7 @@ schema_view = get_schema_view(
    openapi.Info(
       title="Calypso",
       default_version='v1',
-      description="Calypso is an service to store and anlyse coverage metrics from whole genome sequences",
+      description="Calypso is a service to store and analyse coverage metrics from whole genome sequences",
    ),
    public=True,
 )
