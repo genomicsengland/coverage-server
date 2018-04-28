@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from rest_framework.urlpatterns import format_suffix_patterns
 
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 from webservices import views
 from rest_framework.documentation import include_docs_urls
 
@@ -43,6 +45,15 @@ GET_SAMPLE_METRICS = url(
 
 
 DOCS = url(r'^docs/', include_docs_urls(title='Coverage DB API'))
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="Calypso",
+      default_version='v1',
+      description="Calypso is an service to store and anlyse coverage metrics from whole genome sequences",
+   ),
+   public=True,
+)
 
 urls = [LIST_CREATE_SAMPLE_INGESTION,
         GET_SAMPLE_INGESTION,

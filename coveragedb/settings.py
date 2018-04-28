@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'genes.apps.GenesConfig',
     'django_celery_results',
     'rest_framework',
-    'coveragedbingestion'
+    'coveragedbingestion',
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
