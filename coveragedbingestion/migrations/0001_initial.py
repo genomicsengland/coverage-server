@@ -29,6 +29,7 @@ class Migration(migrations.Migration):
                 ('input_file', models.CharField(max_length=1000)),
                 ('gene_collection', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='coveragedbingestion.GeneCollection')),
                 ('task', models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='django_celery_results.TaskResult')),
+                ('seconds', models.IntegerField(default=None, null=True))
             ],
         ),
         migrations.AlterUniqueTogether(

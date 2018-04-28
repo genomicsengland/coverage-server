@@ -20,6 +20,7 @@ class SampleIngestion(models.Model):
     gene_collection = models.ForeignKey(GeneCollection, on_delete=models.CASCADE)
     task = models.ForeignKey(TaskResult, on_delete=models.CASCADE, default=None, null=True)
     name_slug = models.SlugField(max_length=200, unique=True, editable=False, null=True)
+    seconds = models.IntegerField(default=None, null=True)
 
     class Meta:
         unique_together = ('name', 'gene_collection',)
