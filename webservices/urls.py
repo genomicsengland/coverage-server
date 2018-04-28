@@ -43,9 +43,6 @@ GET_SAMPLE_METRICS = url(
     name='sample-metrics-detail'
 )
 
-
-DOCS = url(r'^docs/', include_docs_urls(title='Coverage DB API'))
-
 schema_view = get_schema_view(
    openapi.Info(
       title="Calypso",
@@ -61,8 +58,7 @@ urls = [LIST_CREATE_SAMPLE_INGESTION,
         LIST_GENE_COVERAGE,
         GET_SAMPLE_METRICS,
         LIST_SAMPLE_METRICS,
-        DOCS
-
+        url(r'^docs/$', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui')
         ]
 
 
