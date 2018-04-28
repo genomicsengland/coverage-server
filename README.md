@@ -1,6 +1,13 @@
 # Requirements
 
-Calypso works with Python3.5.
+* Calypso works with Python3.5.
+* R >= 3.3
+* python3-dev
+* R library edgeR 3.20.9
+```R
+source("https://bioconductor.org/biocLite.R")
+biocLite("edgeR")
+```
 
 ## Python Packages Requirements
 

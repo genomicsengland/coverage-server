@@ -5,6 +5,7 @@ from rest_framework.decorators import list_route, detail_route
 
 from coveragedata.models import GeneCoverage
 from coveragedata.sample_manager import SampleManager
+from coveragedata.coverage_manager import CoverageManager
 from coveragedbingestion.models import SampleIngestion
 from webservices.serializers import SampleIngestionSerializer, CoverageSerializer, SampleCoverageSerializer
 
@@ -161,3 +162,28 @@ class SampleMetricsView(viewsets.ViewSet):
         return Response(s.data)
 
 
+class AggregationsView(viewsets.ViewSet):
+    """
+
+    """
+    coverage_manager = CoverageManager()
+
+    def get_serializer_context(self):
+        """
+        Extra context provided to the serializer class.
+        """
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.serializer
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
+
+    def aggregated_by_gene(self, request):
+        self.cover
+        results = self.coverage_manager.get_aggregated_by_gene(request.data.get('gene_list', []))
+        return results
