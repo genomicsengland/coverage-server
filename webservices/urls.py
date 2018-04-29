@@ -19,6 +19,19 @@ LIST_CREATE_SAMPLE_INGESTION = url(
     name='list-sample-ingestion'
 )
 
+GET_DELETE_GENE_COLLECTION = url(
+    regex=r'^gene-collection/(?P<name>[A-za-z0-9\-_]+)/$',
+    view=views.GeneCollectionViewSet.as_view({'get': 'retrieve', 'delete': 'destroy', 'put': 'update'}),
+    name='get-gene-collection'
+)
+
+
+LIST_CREATE_GENE_COLLECTION = url(
+    regex=r'^gene-collection/$',
+    view=views.GeneCollectionViewSet.as_view({'get': 'list', 'post': 'create'}),
+    name='list-gene-collection'
+)
+
 LIST_GENE_COVERAGE = url(
     regex=r'^gene-coverage/$',
     view=views.GeneCoverageView.as_view({'post': 'list'}),
@@ -58,6 +71,8 @@ urls = [LIST_CREATE_SAMPLE_INGESTION,
         LIST_GENE_COVERAGE,
         GET_SAMPLE_METRICS,
         LIST_SAMPLE_METRICS,
+        LIST_CREATE_GENE_COLLECTION,
+        GET_DELETE_GENE_COLLECTION,
         url(r'^docs/$', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui')
         ]
 

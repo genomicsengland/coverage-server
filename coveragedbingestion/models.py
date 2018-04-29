@@ -7,11 +7,39 @@ from coveragedata.sample_manager import SampleManager
 from coveragedbingestion.tasks import ingest
 
 
+class PropertyDefinition(models.Model):
+    PROPERTY_TYPES = (('string', 'string'), ('float', 'float'), ('integer', 'integer'))
+    property_name = models.CharField(max_length=50, primary_key=True)
+    property_type = models.CharField(max_length=7, choices=PROPERTY_TYPES)
+
+    def __str__(self):
+        return '{}({})'.format(self.property_name, self.property_type)
+
+
 class GeneCollection(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
 
     def __str__(self):
-        return self.name
+        return '- '.join([str(p) for p in self.properties.all()])
+
+
+class CollectionProperty(models.Model):
+    property_type = models.ForeignKey(PropertyDefinition, on_delete=models.CASCADE, related_name='properties')
+    collection = models.ForeignKey(GeneCollection, on_delete=models.CASCADE, related_name='properties')
+    value = models.CharField(max_length=250, null=False)
+
+    class Meta:
+        unique_together = ('property_type', 'collection',)
+
+    def __str__(self):
+        return '{}:{}'.format(self.property_type.property_name, self.value)
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        if self.property_type.property_type == 'float':
+            self.value = str(float(self.value))
+        elif self.property_type.property_type == 'integer':
+            int(self.value)
+        super(CollectionProperty, self).save(force_insert, force_update, using, update_fields)
 
 
 class SampleIngestion(models.Model):
