@@ -6,9 +6,9 @@ from rest_framework.decorators import list_route, detail_route
 from coveragedata.models import GeneCoverage
 from coveragedata.sample_manager import SampleManager
 from coveragedata.coverage_manager import CoverageManager
-from coveragedbingestion.models import SampleIngestion, GeneCollection
+from coveragedbingestion.models import SampleIngestion, GeneCollection, PropertyDefinition
 from webservices.serializers import SampleIngestionSerializer, CoverageSerializer, SampleCoverageSerializer, \
-    GeneCollectionSerializer
+    GeneCollectionSerializer, PropertyDefinitionSerializer
 
 
 class SampleIngestionViewSet(mixins.CreateModelMixin,
@@ -165,10 +165,10 @@ class SampleMetricsView(viewsets.ViewSet):
 
 class GeneCollectionViewSet(mixins.CreateModelMixin,
                             mixins.UpdateModelMixin,
-                             mixins.ListModelMixin,
-                             mixins.RetrieveModelMixin,
-                             mixins.DestroyModelMixin,
-                             viewsets.GenericViewSet):
+                            mixins.ListModelMixin,
+                            mixins.RetrieveModelMixin,
+                            mixins.DestroyModelMixin,
+                            viewsets.GenericViewSet):
     """
 
     retrieve:
@@ -188,6 +188,32 @@ class GeneCollectionViewSet(mixins.CreateModelMixin,
     serializer_class = GeneCollectionSerializer
     lookup_field = 'name'
     lookup_url_kwarg = 'name'
+
+
+class PropertyDefinitionViewSet(mixins.CreateModelMixin,
+                                mixins.ListModelMixin,
+                                mixins.RetrieveModelMixin,
+                                mixins.DestroyModelMixin,
+                                viewsets.GenericViewSet):
+    """
+
+    retrieve:
+    Fetch the gene collection by a given name
+
+    list:
+    List all gene collections
+
+    delete:
+    Delete the gene collection
+
+    create:
+    Create a new gene collection entity with the specified properties
+
+    """
+    queryset = PropertyDefinition.objects.all()
+    serializer_class = PropertyDefinitionSerializer
+    lookup_field = 'property_name'
+    lookup_url_kwarg = 'property_name'
 
 # class AggregationsView(viewsets.ViewSet):
 #     """

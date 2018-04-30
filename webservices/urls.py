@@ -19,6 +19,20 @@ LIST_CREATE_SAMPLE_INGESTION = url(
     name='list-sample-ingestion'
 )
 
+
+GET_DELETE_PROPERTY_DEFINITION = url(
+    regex=r'^property-definition/(?P<property_name>[A-za-z0-9\-_]+)/$',
+    view=views.PropertyDefinitionViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'}),
+    name='get-property-definition'
+)
+
+
+LIST_CREATE_PROPERTY_DEFINITION = url(
+    regex=r'^property-definition/$',
+    view=views.PropertyDefinitionViewSet.as_view({'get': 'list', 'post': 'create'}),
+    name='list-property-definition'
+)
+
 GET_DELETE_GENE_COLLECTION = url(
     regex=r'^gene-collection/(?P<name>[A-za-z0-9\-_]+)/$',
     view=views.GeneCollectionViewSet.as_view({'get': 'retrieve', 'delete': 'destroy', 'put': 'update'}),
@@ -73,6 +87,8 @@ urls = [LIST_CREATE_SAMPLE_INGESTION,
         LIST_SAMPLE_METRICS,
         LIST_CREATE_GENE_COLLECTION,
         GET_DELETE_GENE_COLLECTION,
+        LIST_CREATE_PROPERTY_DEFINITION,
+        GET_DELETE_PROPERTY_DEFINITION,
         url(r'^docs/$', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui')
         ]
 

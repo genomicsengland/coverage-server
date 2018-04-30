@@ -24,7 +24,7 @@ class GeneCollection(models.Model):
 
 
 class CollectionProperty(models.Model):
-    property_type = models.ForeignKey(PropertyDefinition, on_delete=models.CASCADE, related_name='properties')
+    property_type = models.ForeignKey(PropertyDefinition, on_delete=models.PROTECT, related_name='properties')
     collection = models.ForeignKey(GeneCollection, on_delete=models.CASCADE, related_name='properties')
     value = models.CharField(max_length=250, null=False)
 

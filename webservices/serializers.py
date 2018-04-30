@@ -74,6 +74,9 @@ class PropertyDefinitionSerializer(serializers.ModelSerializer):
         model = PropertyDefinition
         fields = ('property_name', 'property_type')
 
+    def create(self, validated_data):
+        return PropertyDefinition.objects.create(**validated_data)
+
 
 class CollectionPropertySerializer(serializers.ModelSerializer):
     property_type = PrimaryKeyRelatedField(many=False, queryset=PropertyDefinition.objects.all())
