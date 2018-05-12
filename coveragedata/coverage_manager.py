@@ -58,23 +58,23 @@ class CoverageManager(object):
 
         return self.coverage_collection.aggregate(query)
 
-    @mongo_exception_manager
-    def get_coverage_by_sample_and_genes(self, sample, gene_list):
-        """
-
-        :param sample: the sample of interest
-        :param gene_list: the list of genes of interst. If empty all genes will be returned
-        :return: a cursor with the search results
-        """
-        query = {'sample': sample}
-        if gene_list:
-            query['name'] = {"$in": gene_list}
-        projection = {'union_tr.stats.avg': 1, 'name': 1, 'sample': 1, '_id': 0}
-        cursor = self.coverage_collection.find(
-            query,
-            projection
-        ).sort('name', ASCENDING)
-        return cursor
+    # @mongo_exception_manager
+    # def get_coverage_by_sample_and_genes(self, sample, gene_list):
+    #     """
+    #
+    #     :param sample: the sample of interest
+    #     :param gene_list: the list of genes of interst. If empty all genes will be returned
+    #     :return: a cursor with the search results
+    #     """
+    #     query = {'sample': sample}
+    #     if gene_list:
+    #         query['name'] = {"$in": gene_list}
+    #     projection = {'union_tr.stats.avg': 1, 'name': 1, 'sample': 1, '_id': 0}
+    #     cursor = self.coverage_collection.find(
+    #         query,
+    #         projection
+    #     ).sort('name', ASCENDING)
+    #     return cursor
 
     @mongo_exception_manager
     def get_groups_by_samples(self, samples):
@@ -136,3 +136,26 @@ class CoverageManager(object):
         for group in groups:
             samples += self.get_samples_by_group(group)
         return samples
+
+    @mongo_exception_manager
+    def get_coverage_by_sample_and_genes(self, samples=None, experiment=None, gene_list=None):
+        """
+
+        :param sample: the sample of interest
+        :param gene_list: the list of genes of interst. If empty all genes will be returned
+        :return: a cursor with the search results
+        """
+        query = {}
+        if experiment:
+            query['gcol'] = experiment
+        if samples:
+            query['sample'] = {"$in": samples}
+        if gene_list:
+            query['name'] = {"$in": gene_list}
+        projection = {'union_tr.stats': 1, 'gcol': 1,
+                      'name': 1, 'sample': 1, '_id': 0}
+        cursor = self.coverage_collection.find(
+            query,
+            projection
+        ).sort('name', ASCENDING)
+        return cursor

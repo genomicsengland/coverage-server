@@ -59,14 +59,23 @@ class SampleCoverageSerializer(serializers.Serializer):
         return instance
 
 
-class AggregationsSerializer(serializers.Serializer):
+# class AggregationsSerializer(serializers.Serializer):
+#     gene_list = StringListField(help_text='List of genes names, i.e TP53')
+#
+#     def to_representation(self, instance):
+#         return instance.to_json_dict()
+#
+#     def to_internal_value(self, data):
+#         return AggregationQuery(gene_list=data.get('gene_list'))
+
+
+class AggregatedGeneMetricsInput(serializers.Serializer):
+    experiment = serializers.CharField(help_text='Experiments')
     gene_list = StringListField(help_text='List of genes names, i.e TP53')
+    samples = StringListField(help_text='List of samples', required=False)
 
     def to_representation(self, instance):
         return instance.to_json_dict()
-
-    def to_internal_value(self, data):
-        return AggregationQuery(gene_list=data.get('gene_list'))
 
 
 class PropertyDefinitionSerializer(serializers.ModelSerializer):

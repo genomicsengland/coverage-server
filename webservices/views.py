@@ -3,12 +3,13 @@ from rest_framework.response import Response
 from rest_framework import viewsets, mixins, pagination
 from rest_framework.decorators import list_route, detail_route
 
+from coveragedata.aggregators import UnionTranscriptsAggregation
 from coveragedata.models import GeneCoverage
 from coveragedata.sample_manager import SampleManager
 from coveragedata.coverage_manager import CoverageManager
 from coveragedbingestion.models import SampleIngestion, GeneCollection, PropertyDefinition
 from webservices.serializers import SampleIngestionSerializer, CoverageSerializer, SampleCoverageSerializer, \
-    GeneCollectionSerializer, PropertyDefinitionSerializer
+    GeneCollectionSerializer, PropertyDefinitionSerializer, AggregatedGeneMetricsInput
 
 
 class SampleIngestionViewSet(mixins.CreateModelMixin,
@@ -215,27 +216,36 @@ class PropertyDefinitionViewSet(mixins.CreateModelMixin,
     lookup_field = 'property_name'
     lookup_url_kwarg = 'property_name'
 
-# class AggregationsView(viewsets.ViewSet):
-#     """
-#
-#     """
-#     coverage_manager = CoverageManager()
-#
-#     def get_serializer_context(self):
-#         """
-#         Extra context provided to the serializer class.
-#         """
-#         return {
-#             'request': self.request,
-#             'format': self.format_kwarg,
-#             'view': self
-#         }
-#
-#     def get_serializer(self, *args, **kwargs):
-#         serializer_class = self.serializer
-#         kwargs['context'] = self.get_serializer_context()
-#         return serializer_class(*args, **kwargs)
-#
-#     def aggregated_by_gene(self, request):
-#         results = self.coverage_manager.get_aggregated_by_gene(request.data.get('gene_list', []))
-#         return results
+
+class AggregationView(viewsets.ViewSet):
+    """
+
+    """
+
+    serializer = AggregatedGeneMetricsInput
+
+    # def get_serializer_context(self):
+    #     """
+    #     Extra context provided to the serializer class.
+    #     """
+    #     return {
+    #         'request': self.request,
+    #         'format': self.format_kwarg,
+    #         'view': self
+    #     }
+    #
+    # def get_serializer(self, *args, **kwargs):
+    #     serializer_class = self.serializer
+    #     kwargs['context'] = self.get_serializer_context()
+    #     return serializer_class(*args, **kwargs)
+
+    @list_route(methods=['post'])
+    def list(self, request):
+        serializer = self.serializer(data=self.request.data)
+        if serializer.is_valid():
+            ut = UnionTranscriptsAggregation(experiment=serializer.validated_data.get('experiment'),
+                                             samples=serializer.validated_data.get('samples'),
+                                             gene_list=serializer.validated_data.get('gene_list')
+                                             )
+            return Response(ut.to_json_dict(mode='index'))
+
