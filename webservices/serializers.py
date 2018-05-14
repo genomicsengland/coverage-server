@@ -71,7 +71,7 @@ class SampleCoverageSerializer(serializers.Serializer):
 
 class AggregatedGeneMetricsInput(serializers.Serializer):
     experiment = serializers.CharField(help_text='Experiments')
-    gene_list = StringListField(help_text='List of genes names, i.e TP53')
+    gene_list = StringListField(help_text='List of genes names, i.e TP53', required=False)
     samples = StringListField(help_text='List of samples', required=False)
 
     def to_representation(self, instance):
@@ -138,6 +138,31 @@ class GeneCollectionSerializer(serializers.ModelSerializer):
         return instance
 
 
+class MetricsSerializer(serializers.Serializer):
+    min = serializers.FloatField(required=False)
+    med = serializers.FloatField(required=False)
+    max = serializers.FloatField(required=False)
+    mean = serializers.FloatField(required=False)
+    count = serializers.IntegerField(required=False)
+    std = serializers.FloatField(required=False)
+
+    def to_representation(self, instance):
+        return instance.to_json_dict()
 
 
+class UnionTranscriptsAggregationSerializer(serializers.Serializer):
+    gte50x = MetricsSerializer(label='Metrics', required=False)
+    sd = MetricsSerializer(required=False)
+    gte15x = MetricsSerializer(required=False)
+    rmsd = MetricsSerializer(required=False)
+    gte30x = MetricsSerializer(required=False)
+    pct25 = MetricsSerializer(required=False)
+    bases = MetricsSerializer(required=False)
+    med = MetricsSerializer(required=False)
+    avg = MetricsSerializer(required=False)
+    gc = MetricsSerializer(required=False)
+    pct75 = MetricsSerializer(required=False)
+    lt15x = MetricsSerializer(required=False)
 
+    def to_representation(self, instance):
+        return instance.to_json_dict()

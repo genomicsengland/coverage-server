@@ -7,7 +7,7 @@ from webservices import views
 from rest_framework.documentation import include_docs_urls
 
 GET_SAMPLE_INGESTION = url(
-    regex=r'^sample-ingestion/(?P<name_and_gene_collection>[A-za-z0-9\-_]+[^/])$',
+    regex=r'^sample-ingestion/(?P<name_and_gene_collection>[A-za-z0-9\-_]+[^/])/*$',
     view=views.SampleIngestionViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'}),
     name='get-sample-ingestion'
 )

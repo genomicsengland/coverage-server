@@ -43,5 +43,7 @@ class UnionTranscriptsAggregation(object):
             new_dict.setdefault(key, {})
             for comp_key in result_dict[key]:
                 new_dict[key].setdefault(comp_key[0].replace(lstrip, ''), {})
-                new_dict[key][comp_key[0].replace(lstrip, '')][comp_key[1]] = round(result_dict[key][comp_key], 3)
+                new_dict[key][comp_key[0].replace(lstrip, '')][comp_key[1].replace('50%', 'med')] = round(
+                    result_dict[key][comp_key], 3
+                )
         return new_dict

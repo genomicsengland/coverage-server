@@ -1,15 +1,16 @@
 from django.urls import reverse_lazy
-from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, mixins, pagination
-from rest_framework.decorators import list_route, detail_route
+from rest_framework.decorators import list_route
+from rest_framework.response import Response
 
 from coveragedata.aggregators import UnionTranscriptsAggregation
 from coveragedata.models import GeneCoverage
 from coveragedata.sample_manager import SampleManager
-from coveragedata.coverage_manager import CoverageManager
 from coveragedbingestion.models import SampleIngestion, GeneCollection, PropertyDefinition
 from webservices.serializers import SampleIngestionSerializer, CoverageSerializer, SampleCoverageSerializer, \
-    GeneCollectionSerializer, PropertyDefinitionSerializer, AggregatedGeneMetricsInput
+    GeneCollectionSerializer, PropertyDefinitionSerializer, AggregatedGeneMetricsInput, \
+    UnionTranscriptsAggregationSerializer
 
 
 class SampleIngestionViewSet(mixins.CreateModelMixin,
@@ -224,22 +225,23 @@ class AggregationView(viewsets.ViewSet):
 
     serializer = AggregatedGeneMetricsInput
 
-    # def get_serializer_context(self):
-    #     """
-    #     Extra context provided to the serializer class.
-    #     """
-    #     return {
-    #         'request': self.request,
-    #         'format': self.format_kwarg,
-    #         'view': self
-    #     }
-    #
-    # def get_serializer(self, *args, **kwargs):
-    #     serializer_class = self.serializer
-    #     kwargs['context'] = self.get_serializer_context()
-    #     return serializer_class(*args, **kwargs)
+    def get_serializer_context(self):
+        """
+        Extra context provided to the serializer class.
+        """
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.serializer
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
 
     @list_route(methods=['post'])
+    @swagger_auto_schema(responses={200: UnionTranscriptsAggregationSerializer})
     def list(self, request):
         serializer = self.serializer(data=self.request.data)
         if serializer.is_valid():
