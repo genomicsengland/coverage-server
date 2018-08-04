@@ -1,13 +1,16 @@
 from django.urls import reverse_lazy
-from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, mixins, pagination
-from rest_framework.decorators import list_route, detail_route
+from rest_framework.decorators import list_route
+from rest_framework.response import Response
 
+from coveragedata.aggregators import UnionTranscriptsAggregation
 from coveragedata.models import GeneCoverage
 from coveragedata.sample_manager import SampleManager
-from coveragedata.coverage_manager import CoverageManager
-from coveragedbingestion.models import SampleIngestion
-from webservices.serializers import SampleIngestionSerializer, CoverageSerializer, SampleCoverageSerializer
+from coveragedbingestion.models import SampleIngestion, GeneCollection, PropertyDefinition
+from webservices.serializers import SampleIngestionSerializer, CoverageSerializer, SampleCoverageSerializer, \
+    GeneCollectionSerializer, PropertyDefinitionSerializer, AggregatedGeneMetricsInput, \
+    UnionTranscriptsAggregationSerializer
 
 
 class SampleIngestionViewSet(mixins.CreateModelMixin,
@@ -162,11 +165,65 @@ class SampleMetricsView(viewsets.ViewSet):
         return Response(s.data)
 
 
-class AggregationsView(viewsets.ViewSet):
+class GeneCollectionViewSet(mixins.CreateModelMixin,
+                            mixins.UpdateModelMixin,
+                            mixins.ListModelMixin,
+                            mixins.RetrieveModelMixin,
+                            mixins.DestroyModelMixin,
+                            viewsets.GenericViewSet):
+    """
+
+    retrieve:
+    Fetch the gene collection by a given name
+
+    list:
+    List all gene collections
+
+    delete:
+    Delete the gene collection
+
+    create:
+    Create a new gene collection entity with the specified properties
+
+    """
+    queryset = GeneCollection.objects.all()
+    serializer_class = GeneCollectionSerializer
+    lookup_field = 'name'
+    lookup_url_kwarg = 'name'
+
+
+class PropertyDefinitionViewSet(mixins.CreateModelMixin,
+                                mixins.ListModelMixin,
+                                mixins.RetrieveModelMixin,
+                                mixins.DestroyModelMixin,
+                                viewsets.GenericViewSet):
+    """
+
+    retrieve:
+    Fetch the gene collection by a given name
+
+    list:
+    List all gene collections
+
+    delete:
+    Delete the gene collection
+
+    create:
+    Create a new gene collection entity with the specified properties
+
+    """
+    queryset = PropertyDefinition.objects.all()
+    serializer_class = PropertyDefinitionSerializer
+    lookup_field = 'property_name'
+    lookup_url_kwarg = 'property_name'
+
+
+class AggregationView(viewsets.ViewSet):
     """
 
     """
-    coverage_manager = CoverageManager()
+
+    serializer = AggregatedGeneMetricsInput
 
     def get_serializer_context(self):
         """
@@ -183,7 +240,14 @@ class AggregationsView(viewsets.ViewSet):
         kwargs['context'] = self.get_serializer_context()
         return serializer_class(*args, **kwargs)
 
-    def aggregated_by_gene(self, request):
-        self.cover
-        results = self.coverage_manager.get_aggregated_by_gene(request.data.get('gene_list', []))
-        return results
+    @list_route(methods=['post'])
+    @swagger_auto_schema(responses={200: UnionTranscriptsAggregationSerializer})
+    def list(self, request):
+        serializer = self.serializer(data=self.request.data)
+        if serializer.is_valid():
+            ut = UnionTranscriptsAggregation(experiment=serializer.validated_data.get('experiment'),
+                                             samples=serializer.validated_data.get('samples'),
+                                             gene_list=serializer.validated_data.get('gene_list')
+                                             )
+            return Response(ut.to_json_dict(mode='index'))
+

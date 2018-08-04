@@ -1,7 +1,7 @@
 from rest_framework import serializers
+from rest_framework.relations import PrimaryKeyRelatedField
 
-from coveragedata.models import GeneCoverage
-from coveragedbingestion.models import SampleIngestion
+from coveragedbingestion.models import SampleIngestion, PropertyDefinition, CollectionProperty, GeneCollection
 
 
 class StringListField(serializers.ListField):
@@ -59,15 +59,110 @@ class SampleCoverageSerializer(serializers.Serializer):
         return instance
 
 
-class AggregationsSerializer(serializers.Serializer):
-    gene_list = StringListField(help_text='List of genes names, i.e TP53')
+# class AggregationsSerializer(serializers.Serializer):
+#     gene_list = StringListField(help_text='List of genes names, i.e TP53')
+#
+#     def to_representation(self, instance):
+#         return instance.to_json_dict()
+#
+#     def to_internal_value(self, data):
+#         return AggregationQuery(gene_list=data.get('gene_list'))
+
+
+class AggregatedGeneMetricsInput(serializers.Serializer):
+    experiment = serializers.CharField(help_text='Experiments')
+    gene_list = StringListField(help_text='List of genes names, i.e TP53', required=False)
+    samples = StringListField(help_text='List of samples', required=False)
 
     def to_representation(self, instance):
         return instance.to_json_dict()
 
-    def to_internal_value(self, data):
-        return AggregationQuery(gene_list=data.get('gene_list'))
+
+class PropertyDefinitionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PropertyDefinition
+        fields = ('property_name', 'property_type')
+
+    def create(self, validated_data):
+        return PropertyDefinition.objects.create(**validated_data)
 
 
+class CollectionPropertySerializer(serializers.ModelSerializer):
+    property_type = PrimaryKeyRelatedField(many=False, queryset=PropertyDefinition.objects.all())
+
+    class Meta:
+        model = CollectionProperty
+        fields = ('property_type', 'value')
+
+    def validate(self, data):
+        if data.get('property_type').property_type == 'float':
+            try:
+                float(data.get('value'))
+            except ValueError:
+                raise serializers.ValidationError('Please provide a valid float value')
+
+        elif data.get('property_type').property_type == 'integer':
+            try:
+                int(data.get('value'))
+            except ValueError:
+                raise serializers.ValidationError('Please provide a valid integer value')
+        return data
 
 
+class GeneCollectionSerializer(serializers.ModelSerializer):
+    properties = CollectionPropertySerializer(many=True)
+
+    class Meta:
+        model = GeneCollection
+        fields = ('name', 'properties')
+
+    def create(self, validated_data):
+        properties = validated_data.pop('properties')
+        gene_collection = GeneCollection.objects.create(**validated_data)
+        for p in properties:
+            property_type = p['property_type']
+            CollectionProperty.objects.create(value=p['value'],
+                                              property_type=property_type,
+                                              collection=gene_collection)
+        return gene_collection
+
+    def update(self, instance, validated_data):
+        properties = validated_data.pop('properties')
+        instance.name = validated_data.get('name', instance.name)
+        for p in properties:
+            property_type = p['property_type']
+            CollectionProperty.objects.update_or_create(property_type=property_type,
+                                                        collection=instance,
+                                                        defaults={'value': p['value']})
+        instance.save()
+        return instance
+
+
+class MetricsSerializer(serializers.Serializer):
+    min = serializers.FloatField(required=False)
+    med = serializers.FloatField(required=False)
+    max = serializers.FloatField(required=False)
+    mean = serializers.FloatField(required=False)
+    count = serializers.IntegerField(required=False)
+    std = serializers.FloatField(required=False)
+
+    def to_representation(self, instance):
+        return instance.to_json_dict()
+
+
+class UnionTranscriptsAggregationSerializer(serializers.Serializer):
+    gte50x = MetricsSerializer(label='Metrics', required=False)
+    sd = MetricsSerializer(required=False)
+    gte15x = MetricsSerializer(required=False)
+    rmsd = MetricsSerializer(required=False)
+    gte30x = MetricsSerializer(required=False)
+    pct25 = MetricsSerializer(required=False)
+    bases = MetricsSerializer(required=False)
+    med = MetricsSerializer(required=False)
+    avg = MetricsSerializer(required=False)
+    gc = MetricsSerializer(required=False)
+    pct75 = MetricsSerializer(required=False)
+    lt15x = MetricsSerializer(required=False)
+
+    def to_representation(self, instance):
+        return instance.to_json_dict()
