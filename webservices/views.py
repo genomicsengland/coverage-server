@@ -6,8 +6,9 @@ from rest_framework.decorators import list_route, detail_route
 from coveragedata.models import GeneCoverage
 from coveragedata.sample_manager import SampleManager
 from coveragedata.coverage_manager import CoverageManager
-from coveragedbingestion.models import SampleIngestion
-from webservices.serializers import SampleIngestionSerializer, CoverageSerializer, SampleCoverageSerializer
+from coveragedbingestion.models import SampleIngestion, GeneCollection, PropertyDefinition
+from webservices.serializers import SampleIngestionSerializer, CoverageSerializer, SampleCoverageSerializer, \
+    GeneCollectionSerializer, PropertyDefinitionSerializer
 
 
 class SampleIngestionViewSet(mixins.CreateModelMixin,
@@ -162,28 +163,79 @@ class SampleMetricsView(viewsets.ViewSet):
         return Response(s.data)
 
 
-class AggregationsView(viewsets.ViewSet):
+class GeneCollectionViewSet(mixins.CreateModelMixin,
+                            mixins.UpdateModelMixin,
+                            mixins.ListModelMixin,
+                            mixins.RetrieveModelMixin,
+                            mixins.DestroyModelMixin,
+                            viewsets.GenericViewSet):
     """
 
+    retrieve:
+    Fetch the gene collection by a given name
+
+    list:
+    List all gene collections
+
+    delete:
+    Delete the gene collection
+
+    create:
+    Create a new gene collection entity with the specified properties
+
     """
-    coverage_manager = CoverageManager()
+    queryset = GeneCollection.objects.all()
+    serializer_class = GeneCollectionSerializer
+    lookup_field = 'name'
+    lookup_url_kwarg = 'name'
 
-    def get_serializer_context(self):
-        """
-        Extra context provided to the serializer class.
-        """
-        return {
-            'request': self.request,
-            'format': self.format_kwarg,
-            'view': self
-        }
 
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = self.serializer
-        kwargs['context'] = self.get_serializer_context()
-        return serializer_class(*args, **kwargs)
+class PropertyDefinitionViewSet(mixins.CreateModelMixin,
+                                mixins.ListModelMixin,
+                                mixins.RetrieveModelMixin,
+                                mixins.DestroyModelMixin,
+                                viewsets.GenericViewSet):
+    """
 
-    def aggregated_by_gene(self, request):
-        self.cover
-        results = self.coverage_manager.get_aggregated_by_gene(request.data.get('gene_list', []))
-        return results
+    retrieve:
+    Fetch the gene collection by a given name
+
+    list:
+    List all gene collections
+
+    delete:
+    Delete the gene collection
+
+    create:
+    Create a new gene collection entity with the specified properties
+
+    """
+    queryset = PropertyDefinition.objects.all()
+    serializer_class = PropertyDefinitionSerializer
+    lookup_field = 'property_name'
+    lookup_url_kwarg = 'property_name'
+
+# class AggregationsView(viewsets.ViewSet):
+#     """
+#
+#     """
+#     coverage_manager = CoverageManager()
+#
+#     def get_serializer_context(self):
+#         """
+#         Extra context provided to the serializer class.
+#         """
+#         return {
+#             'request': self.request,
+#             'format': self.format_kwarg,
+#             'view': self
+#         }
+#
+#     def get_serializer(self, *args, **kwargs):
+#         serializer_class = self.serializer
+#         kwargs['context'] = self.get_serializer_context()
+#         return serializer_class(*args, **kwargs)
+#
+#     def aggregated_by_gene(self, request):
+#         results = self.coverage_manager.get_aggregated_by_gene(request.data.get('gene_list', []))
+#         return results
